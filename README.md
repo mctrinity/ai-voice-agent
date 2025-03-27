@@ -1,12 +1,12 @@
 # 🧠 AI Voice Agent Platform
 
-An intelligent voice automation platform that combines Twilio (or SignalWire), OpenAI Whisper, GPT-4, ElevenLabs, and integrations like Google Calendar to create a smart, conversational phone agent.
+An intelligent voice automation platform that combines **SignalWire**, OpenAI Whisper, GPT-4, ElevenLabs, and integrations like Google Calendar to create a smart, conversational phone agent.
 
 ---
 
 ## 🔥 Features
 
-- ☎️ **Voice Call Management** using Twilio
+- ☎️ **Voice Call Management** using SignalWire
 - 🎧 **Speech-to-Text (STT)** with OpenAI Whisper
 - 🧠 **Conversational Reasoning** via GPT-4 or Claude
 - 🗣️ **Text-to-Speech (TTS)** using ElevenLabs
@@ -23,12 +23,12 @@ ai-voice-agent/
 ├── backend/
 │   ├── app/
 │   │   ├── api/               # FastAPI route handlers
-│   │   ├── core/              # AI engine, config
-│   │   ├── services/          # Twilio, GPT, Whisper, TTS
+│   │   ├── core/              # Config settings
+│   │   ├── services/          # SignalWire, Whisper, GPT, TTS, AI engine
 │   │   ├── models/            # Data models (call logs, etc.)
 │   │   └── main.py            # FastAPI entry point
+│   ├── .env                   # Environment variables
 │   └── requirements.txt
-├── .env                       # Environment variables
 └── README.md
 ```
 
@@ -46,18 +46,21 @@ cd ai-voice-agent/backend
 ### 2. Set Up Environment
 
 ```bash
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ### 3. Configure `.env`
 
-Create a `.env` file in the root with your keys:
+Create a `.env` file **inside the `backend/` folder** with your keys:
 
 ```env
-TWILIO_ACCOUNT_SID=your_sid
-TWILIO_AUTH_TOKEN=your_token
+SIGNALWIRE_PROJECT_ID=your_project_id
+SIGNALWIRE_API_TOKEN=your_api_token
+SIGNALWIRE_SPACE_URL=your-space.signalwire.com
+SIGNALWIRE_PHONE_NUMBER=+1234567890
+
 OPENAI_API_KEY=sk-...
 ELEVENLABS_API_KEY=...
 GOOGLE_API_CREDENTIALS_PATH=secrets/google.json
@@ -69,16 +72,29 @@ GOOGLE_API_CREDENTIALS_PATH=secrets/google.json
 uvicorn app.main:app --reload
 ```
 
+### 5. Start ngrok (for webhook testing)
+
+```bash
+ngrok http 8000
+```
+
+Copy the `https://xxxx.ngrok.io` URL and use it as your webhook base in SignalWire:
+
+```
+https://xxxx.ngrok.io/calls/signalwire/incoming
+```
+
 ---
 
 ## 📞 Example Call Flow
 
-1. Caller dials a Twilio number
-2. Twilio webhook hits `/calls/twilio/incoming`
-3. Audio is transcribed via Whisper
-4. GPT-4 generates a response
-5. ElevenLabs converts text → voice
-6. Twilio streams the response back to the caller
+1. Caller dials a SignalWire number
+2. SignalWire webhook hits `/calls/signalwire/incoming` via ngrok
+3. Audio is transcribed via Whisper (`whisper_service.py`)
+4. GPT-4 generates a response (`gpt_service.py`)
+5. ElevenLabs converts response to speech (`tts_service.py`)
+6. AI Engine handles the full flow (`ai_engine.py`)
+7. SignalWire streams the voice response back to the caller
 
 ---
 
@@ -87,22 +103,38 @@ uvicorn app.main:app --reload
 | Purpose      | Tech Used                 |
 | ------------ | ------------------------- |
 | Backend API  | FastAPI (Python)          |
-| Telephony    | Twilio / SignalWire       |
+| Telephony    | SignalWire                |
 | AI Reasoning | GPT-4 / Claude            |
 | STT          | OpenAI Whisper            |
 | TTS          | ElevenLabs                |
 | Scheduling   | Google Calendar, Calendly |
 | Deployment   | Railway, Render, Docker   |
+| Dev Tunnel   | ngrok                     |
 
 ---
 
 ## 📌 Roadmap
 
-- [ ] Twilio integration with full webhook call flow
-- [ ] AI response pipeline (Whisper → GPT → ElevenLabs)
+- [x] SignalWire integration with full webhook call flow
+- [x] AI response pipeline (Whisper → GPT → ElevenLabs)
 - [ ] Google Calendar sync
 - [ ] Internal admin/test dashboard
 - [ ] Multi-agent context/memory support
+
+### ✅ Completed
+
+- [x] SignalWire integration with full webhook call flow
+- [x] AI response pipeline (Whisper → GPT → ElevenLabs)
+
+### 🔧 In Progress / To-Do
+
+- [ ] Google Calendar sync
+- [ ] Internal admin/test dashboard
+- [ ] Multi-agent context/memory support
+- [ ] Whisper integration for live STT from calls
+- [ ] ElevenLabs integration with `<Play>` instead of `<Say>`
+- [ ] Call transcript logging (to file/DB)
+- [ ] Frontend dashboard for reviewing interactions
 
 ---
 

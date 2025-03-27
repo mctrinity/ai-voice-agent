@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# VSCode/IDE settings
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Env files
+.env
+.env.*
+
+# Logs
+*.log
+
+# Output files
+output/
+*.mp3
+*.wav
+
+# Pytest cache
+.pytest_cache/
