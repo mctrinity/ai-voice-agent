@@ -3,15 +3,13 @@ import httpx
 
 
 async def transcribe(audio_bytes: bytes) -> str:
+    url = "https://api.openai.com/v1/audio/transcriptions"
+    headers = {"Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}"}
+    data = {"model": "whisper-1", "language": "en"}
+
+    files = {"file": ("audio.wav", audio_bytes, "audio/wav")}
+
     async with httpx.AsyncClient() as client:
-        files = {"file": ("audio.wav", audio_bytes, "audio/wav")}
-        data = {"model": "whisper-1"}
-        headers = {"Authorization": f'Bearer {os.getenv("OPENAI_API_KEY")}'}
-        response = await client.post(
-            "https://api.openai.com/v1/audio/transcriptions",
-            files=files,
-            data=data,
-            headers=headers,
-        )
+        response = await client.post(url, headers=headers, data=data, files=files)
         response.raise_for_status()
-        return response.json().get("text", "")
+        return response.json()["text"]

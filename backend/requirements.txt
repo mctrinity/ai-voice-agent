@@ -4,3 +4,4 @@ python-dotenv
 httpx
 signalwire
 openai
+python-multipart
