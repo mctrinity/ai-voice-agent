@@ -2,8 +2,6 @@ import httpx
 from datetime import datetime
 from app.core.config import settings
 
-print("OpenAI API Key in runtime:", settings.OPENAI_API_KEY[:10], "...")  # Partial key
-
 
 async def respond(transcript: str) -> str:
     # Inject current time (optional)
