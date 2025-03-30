@@ -11,6 +11,9 @@ class Settings:
     SIGNALWIRE_SPACE_URL = os.getenv("SIGNALWIRE_SPACE_URL")
     SIGNALWIRE_PHONE_NUMBER = os.getenv("SIGNALWIRE_PHONE_NUMBER")
 
+    # Ngrok URL
+    NGROK_BASE_URL = os.getenv("NGROK_BASE_URL")
+
     # OpenAI
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 

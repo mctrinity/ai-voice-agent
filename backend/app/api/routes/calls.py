@@ -4,8 +4,14 @@ from app.services.whisper_service import transcribe
 from app.services.gpt_service import respond
 from fastapi.responses import StreamingResponse
 from app.services.elevenlabs_service import text_to_speech
+from app.core.config import settings
 
 router = APIRouter()
+
+
+@router.get("/config")
+def get_config():
+    return {"ngrok_base_url": settings.NGROK_BASE_URL}
 
 
 @router.post("/signalwire/incoming")

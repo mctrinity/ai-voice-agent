@@ -26,6 +26,7 @@ ai-voice-agent/
 │   │   ├── core/              # Config settings
 │   │   ├── services/          # SignalWire, Whisper, GPT, TTS, AI engine
 │   │   ├── models/            # Data models (call logs, etc.)
+│   │   ├── static/            # index.html (Web UI)
 │   │   └── main.py            # FastAPI entry point
 │   ├── .env                   # Environment variables
 │   └── requirements.txt
@@ -117,9 +118,6 @@ https://xxxx.ngrok.io/calls/signalwire/incoming
 
 - [x] SignalWire integration with full webhook call flow
 - [x] AI response pipeline (Whisper → GPT → ElevenLabs)
-- [ ] Google Calendar sync
-- [ ] Internal admin/test dashboard
-- [ ] Multi-agent context/memory support
 
 ### ✅ Completed
 
@@ -135,6 +133,20 @@ https://xxxx.ngrok.io/calls/signalwire/incoming
 - [ ] ElevenLabs integration with `<Play>` instead of `<Say>`
 - [ ] Call transcript logging (to file/DB)
 - [ ] Frontend dashboard for reviewing interactions
+
+---
+
+## ⚠️ Known Issues & Temporary Fixes
+
+- **ElevenLabs Timeout / Cutoff**:
+
+  - Long GPT responses (>20s of audio) cause timeouts or truncated playback
+  - ✅ **Temporary fix**: Truncate GPT response to 200–300 characters
+  - ✅ **Updated prompt**: Ask GPT to keep responses under 2 sentences
+  - ✅ Added timeout handling and logging in ElevenLabs integration
+
+- **Real-time questions** (e.g. "What time is it?") returned generic replies
+  - ✅ Fix: Inject current time into GPT system prompt to simulate awareness
 
 ---
 

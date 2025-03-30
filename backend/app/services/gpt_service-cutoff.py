@@ -1,37 +1,23 @@
 import httpx
-from datetime import datetime
 from app.core.config import settings
 
 print("OpenAI API Key in runtime:", settings.OPENAI_API_KEY[:10], "...")  # Partial key
 
 
 async def respond(transcript: str) -> str:
-    # Inject current time (optional)
-    current_time = datetime.now().strftime("%A, %B %d at %I:%M %p")
-
+    prompt = f"You are a friendly voice assistant. A user said: '{transcript}'. What should you say back?"
     async with httpx.AsyncClient() as client:
         headers = {
             "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
             "Content-Type": "application/json",
         }
-
         json_data = {
             "model": "gpt-3.5-turbo",
             "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a friendly AI voice assistant. "
-                        "Keep all responses under 2 sentences and suitable for voice output. Be concise."
-                        f"The current time is {current_time}. "
-                        "Avoid saying you don’t have real-time access. "
-                        "Instead, respond helpfully or suggest possibilities."
-                    ),
-                },
+                {"role": "system", "content": "You are a helpful voice assistant."},
                 {"role": "user", "content": transcript},
             ],
         }
-
         response = await client.post(
             "https://api.openai.com/v1/chat/completions",
             headers=headers,

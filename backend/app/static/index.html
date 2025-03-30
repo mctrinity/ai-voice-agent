@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Voice Assistant</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 60px; }
+    button { padding: 10px 20px; font-size: 18px; margin: 10px; }
+    audio { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🎤 AI Voice Assistant</h1>
+  <button id="recordBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop & Send</button>
+  <p id="status">Waiting...</p>
+  <audio id="responseAudio" controls></audio>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let baseUrl = "";
+  
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusText = document.getElementById('status');
+    const responseAudio = document.getElementById('responseAudio');
+  
+    // 🔗 Fetch ngrok base URL from backend
+    fetch("/calls/config")
+      .then(res => res.json())
+      .then(config => {
+        baseUrl = config.ngrok_base_url;
+        console.log("✅ Using base URL:", baseUrl);
+      })
+      .catch(err => {
+        console.error("❌ Failed to load config:", err);
+        statusText.textContent = "Error loading backend config.";
+      });
+  
+    recordBtn.onclick = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+  
+      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+  
+      mediaRecorder.onstart = () => {
+        statusText.textContent = '🎙️ Recording...';
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+      };
+  
+      mediaRecorder.onstop = async () => {
+        statusText.textContent = '⏳ Processing...';
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+  
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'input.webm');
+  
+        try {
+          const response = await fetch(`${baseUrl}/calls/simulate/ai-call`, {
+            method: 'POST',
+            body: formData
+          });
+  
+          const blob = await response.blob();
+          responseAudio.src = URL.createObjectURL(blob);
+          statusText.textContent = '✅ Response ready';
+        } catch (error) {
+          console.error("❌ Error sending audio:", error);
+          statusText.textContent = '⚠️ Failed to reach backend.';
+        }
+      };
+  
+      mediaRecorder.start();
+    };
+  
+    stopBtn.onclick = () => {
+      mediaRecorder.stop();
+    };
+  </script>
+  
+</body>
+</html>
