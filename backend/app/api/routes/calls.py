@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/config")
 def get_config():
-    return {"ngrok_base_url": settings.NGROK_BASE_URL}
+    return {"api_base_url": settings.API_BASE_URL}
 
 
 @router.post("/signalwire/incoming")
