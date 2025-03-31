@@ -31,7 +31,8 @@
     fetch("/calls/config")
       .then(res => res.json())
       .then(config => {
-        baseUrl = config.ngrok_base_url;
+        // baseUrl = config.ngrok_base_url;
+        baseUrl = config.ngrok_base_url.replace(/\/$/, "");
         console.log("✅ Using base URL:", baseUrl);
       })
       .catch(err => {
