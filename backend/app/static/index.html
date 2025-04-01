@@ -27,12 +27,14 @@
     const statusText = document.getElementById('status');
     const responseAudio = document.getElementById('responseAudio');
   
-    // 🔗 Fetch ngrok base URL from backend
+    // Detect if iOS device
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+    // Fetch base URL from backend config
     fetch("/calls/config")
       .then(res => res.json())
       .then(config => {
-        // baseUrl = config.ngrok_base_url;
-        baseUrl = config.api_base_url.replace(/\/$/, "");
+        baseUrl = config.ngrok_base_url.replace(/\/$/, ""); // remove trailing slash
         console.log("✅ Using base URL:", baseUrl);
       })
       .catch(err => {
@@ -41,47 +43,64 @@
       });
   
     recordBtn.onclick = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mimeType = isIOS ? 'audio/mp4' : 'audio/webm';
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        audioChunks = [];
   
-      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
   
-      mediaRecorder.onstart = () => {
-        statusText.textContent = '🎙️ Recording...';
-        recordBtn.disabled = true;
-        stopBtn.disabled = false;
-      };
+        mediaRecorder.onstart = () => {
+          statusText.textContent = '🎙️ Recording...';
+          recordBtn.disabled = true;
+          stopBtn.disabled = false;
   
-      mediaRecorder.onstop = async () => {
-        statusText.textContent = '⏳ Processing...';
-        recordBtn.disabled = false;
-        stopBtn.disabled = true;
+          // Optional: auto-stop after 10s to prevent long replies
+          setTimeout(() => {
+            if (mediaRecorder.state === 'recording') {
+              mediaRecorder.stop();
+            }
+          }, 10000); // 10 seconds
+        };
   
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append('file', audioBlob, 'input.webm');
+        mediaRecorder.onstop = async () => {
+          statusText.textContent = '⏳ Processing...';
+          recordBtn.disabled = false;
+          stopBtn.disabled = true;
   
-        try {
-          const response = await fetch(`${baseUrl}/calls/simulate/ai-call`, {
-            method: 'POST',
-            body: formData
-          });
+          const fileExtension = isIOS ? 'mp4' : 'webm';
+          const fileType = isIOS ? 'audio/mp4' : 'audio/webm';
+          const audioBlob = new Blob(audioChunks, { type: fileType });
+          const formData = new FormData();
+          formData.append('file', audioBlob, `input.${fileExtension}`);
   
-          const blob = await response.blob();
-          responseAudio.src = URL.createObjectURL(blob);
-          statusText.textContent = '✅ Response ready';
-        } catch (error) {
-          console.error("❌ Error sending audio:", error);
-          statusText.textContent = '⚠️ Failed to reach backend.';
-        }
-      };
+          try {
+            const response = await fetch(`${baseUrl}/calls/simulate/ai-call`, {
+              method: 'POST',
+              body: formData
+            });
   
-      mediaRecorder.start();
+            const blob = await response.blob();
+            responseAudio.src = URL.createObjectURL(blob);
+            statusText.textContent = '✅ Response ready';
+          } catch (error) {
+            console.error("❌ Error sending audio:", error);
+            statusText.textContent = '⚠️ Failed to reach backend.';
+          }
+        };
+  
+        mediaRecorder.start();
+      } catch (err) {
+        console.error("🎤 Mic access error:", err);
+        alert("Microphone not supported on this device or browser.");
+      }
     };
   
     stopBtn.onclick = () => {
-      mediaRecorder.stop();
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+      }
     };
   </script>
   
